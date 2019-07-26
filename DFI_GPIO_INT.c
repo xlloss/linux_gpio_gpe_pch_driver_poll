@@ -354,7 +354,7 @@ static void superio_cr_writebyte(unsigned char target_cr,
 }
 
 
-static unsigned char superIo_CR_ReadByte(unsigned int target_cr,
+static unsigned char superio_cr_readbyte(unsigned int target_cr,
 	unsigned char target_ld)
 {
 
@@ -379,7 +379,7 @@ static void super_io_init()
     outb(SUPER_EN_EXT_MODE ,NCT6106_SIO_ADDR);
     outb(SUPER_EN_EXT_MODE ,NCT6106_SIO_ADDR);
 
-    byte = superIo_CR_ReadByte(LOGIC_DEV_CR(0x30), SUPER_LOGIC_GPIO);
+    byte = superio_cr_readbyte(LOGIC_DEV_CR(0x30), SUPER_LOGIC_GPIO);
     byte = byte | SUPER_GPIO2_GROUP;
 
     superio_cr_writebyte(LOGIC_DEV_CR(0x30), SUPER_LOGIC_GPIO, byte);
@@ -399,20 +399,18 @@ int gpio_value_setting(unsigned char gpio_sat)
 
 	unsigned char byte;
 
-	byte = superIo_CR_ReadByte(LOGIC_DEV_CR(0xE9) ,SUPER_LOGIC_GPIO);
+	byte = superio_cr_readbyte(LOGIC_DEV_CR(0xE9) ,SUPER_LOGIC_GPIO);
 
 	/* SUPER_IO_GP23 */
-    if (gpio_sat & SUPER_IO_23_IOCTL)
+    if (gpio_sat & SUPER_IO_23_IOCTL) {
         byte = byte | (1 << SUPER_GPIO_23_OFF);
-    else
-        byte = byte & ~(1 << SUPER_GPIO_23_OFF);
+	}
 
 
 	/* SUPER_IO_GP26 */
-	if (gpio_sat & SUPER_IO_26_IOCTL)
-		byte = byte | (1 << SUPER_GPIO_26_OFF);
-	else
-		byte = byte & ~(1 << SUPER_GPIO_26_OFF);
+	if (gpio_sat & SUPER_IO_26_IOCTL) {
+		byte |= (1 << SUPER_GPIO_26_OFF);
+	}
 
 	superio_cr_writebyte(LOGIC_DEV_CR(0xE9), SUPER_LOGIC_GPIO, byte);
 
