@@ -58,12 +58,12 @@
 #define CHAR_MIN_COUNT 1
 
 
-#define	DEVICE_NAME	"GPIO_DEVICE"
-#define MODULE_NAME	"GPIO_DEVICE"
+#define	DEVICE_NAME "GPIO_DEVICE"
+#define MODULE_NAME "GPIO_DEVICE"
 
 
-#define PCH_GPI0_GPE_NUM	0x16
-#define PCH_GPI1_GPE_NUM	0x17
+#define PCH_GPI0_GPE_NUM 0x16
+#define PCH_GPI1_GPE_NUM 0x17
 #define PCH_BAR_GPIO_0 0xFD6B0B30
 #define PCH_BAR_GPIO_1 0xFD6B0B40
 
@@ -99,7 +99,7 @@ SUPER_GPIO_27_OFF,
 #define SUPER_LOGIC_GPIO_WDT1 0x08
 #define SUPER_GPIO2_GROUP (1 << 2)
 
-#define SEC_XFER_SIZE 1
+#define READ_SIZE 1
 
 #define PCH_GPE_NUM_GPIO0 0x16
 #define PCH_GPE_NUM_GPIO1 0x17
@@ -140,28 +140,26 @@ long gpio_int_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	switch(cmd) {
 
 		case GPIO_IOCTL_SET_OUTPUT:
-			if(copy_from_user(&gpio_sat, (void __user *)arg, sizeof(gpio_sat)))
+			if (copy_from_user(&gpio_sat, (void __user *)arg, sizeof(gpio_sat)))
 				return -1;
 
             gpio_value_setting(gpio_sat);
-		break;
+			break;
 
         case GPIO_IOCTL_GET_INPUT:
-
-            if(gpio_value_input(&inValue) == 0)
+            if (gpio_value_input(&inValue) == 0)
 				put_user(inValue , p);
             else
                 return -1;
-        break;
+			break;
 
 
 		case GPIO_IOCTL_SET_PID_CMD:
-
-			if(copy_from_user(&pid, (void __user *)arg,sizeof(pid)))
+			if (copy_from_user(&pid, (void __user *)arg,sizeof(pid)))
 				return -1;
 
 			pr_debug("%s user_application pid %d \n",DEVICE_NAME ,pid);
-		break;
+			break;
 
 		default:
 			return -ENOTTY;
@@ -183,8 +181,8 @@ gpio_input_read(struct file *file, char __user *buf, size_t nbytes, loff_t *ppos
 
 	if (nbytes > 0) {
 		n = nbytes;
-		if (n > SEC_XFER_SIZE)
-			n = SEC_XFER_SIZE;
+		if (n > READ_SIZE)
+			n = READ_SIZE;
 	}
 
 	wait_event_interruptible(read_wait, gpio_input_gpe);
@@ -244,18 +242,16 @@ int gpio_int_open(struct inode *inode, struct file *filp)
 
 int gpio_int_resume(struct device *dev)
 {
-
 	pr_debug("%s gpio_int_resume enter \n", DEVICE_NAME);
 	return 0;
 }
 
 const struct dev_pm_ops gpio_pm_ops = {
-
 	.resume = gpio_int_resume,
 };
 
-int gpio_value_input(int * pValue) {
-
+int gpio_value_input(int * pValue)
+{
 	unsigned int *gpio_f22_reg;
     unsigned int *gpio_f23_reg;
 
@@ -274,8 +270,8 @@ int gpio_value_input(int * pValue) {
 }
 
 
-static int send_msg_to_pid(unsigned char ucgpio_sat){
-
+static int send_msg_to_pid(unsigned char ucgpio_sat)
+{
 	struct siginfo 		info;
 	struct task_struct 	*t;
 	int ret;
@@ -309,7 +305,8 @@ static int send_msg_to_pid(unsigned char ucgpio_sat){
 	return 0;
 }
 
-static unsigned int gpio_irq_handler(acpi_handle gpe_device ,unsigned int gpe_number ,void *data)
+static unsigned int gpio_irq_handler(acpi_handle gpe_device
+	,unsigned int gpe_number ,void *data)
 {
     unsigned int *reg;
 
@@ -344,8 +341,9 @@ static unsigned int gpio_irq_handler(acpi_handle gpe_device ,unsigned int gpe_nu
 }
 
 
-static void superIo_CR_WriteByte(unsigned char target_cr, unsigned char target_ld,
-	unsigned char data){
+static void superio_cr_writebyte(unsigned char target_cr,
+	unsigned char target_ld, unsigned char data)
+{
 
 	/* switch Logic Device Number. */
     outb(SUPER_LOGIC_DEV_SET ,NCT6106_SIO_ADDR);
@@ -357,7 +355,8 @@ static void superIo_CR_WriteByte(unsigned char target_cr, unsigned char target_l
 
 
 static unsigned char superIo_CR_ReadByte(unsigned int target_cr,
-	unsigned char target_ld) {
+	unsigned char target_ld)
+{
 
     unsigned char byte;
 
@@ -372,7 +371,8 @@ static unsigned char superIo_CR_ReadByte(unsigned int target_cr,
 }
 
 
-static void super_io_init() {
+static void super_io_init()
+{
     unsigned char byte;
     unsigned char gpio2_mux = 0xFF;
 
@@ -382,23 +382,24 @@ static void super_io_init() {
     byte = superIo_CR_ReadByte(LOGIC_DEV_CR(0x30), SUPER_LOGIC_GPIO);
     byte = byte | SUPER_GPIO2_GROUP;
 
-    superIo_CR_WriteByte(LOGIC_DEV_CR(0x30), SUPER_LOGIC_GPIO, byte);
+    superio_cr_writebyte(LOGIC_DEV_CR(0x30), SUPER_LOGIC_GPIO, byte);
 
 	/* setting SUPER_GPIO2_GROUPROUP_2_MUX for gp23, gp26 */
 	gpio2_mux &= ~((1 << SUPER_GPIO_26_OFF) | (1 << SUPER_GPIO_23_OFF));
-    superIo_CR_WriteByte(LOGIC_DEV_CR(0xE2), SUPER_LOGIC_GPIO_WDT1, gpio2_mux);
+    superio_cr_writebyte(LOGIC_DEV_CR(0xE2), SUPER_LOGIC_GPIO_WDT1, gpio2_mux);
 
     /* set gp23, gp26 as output */
-    superIo_CR_WriteByte(LOGIC_DEV_CR(0xE8), SUPER_LOGIC_GPIO, gpio2_mux);
+    superio_cr_writebyte(LOGIC_DEV_CR(0xE8), SUPER_LOGIC_GPIO, gpio2_mux);
 
     return;
 }
 
-int gpio_value_setting(unsigned char gpio_sat) {
+int gpio_value_setting(unsigned char gpio_sat)
+{
 
-    unsigned char byte;
+	unsigned char byte;
 
-    byte = superIo_CR_ReadByte(LOGIC_DEV_CR(0xE9) ,SUPER_LOGIC_GPIO);
+	byte = superIo_CR_ReadByte(LOGIC_DEV_CR(0xE9) ,SUPER_LOGIC_GPIO);
 
 	/* SUPER_IO_GP23 */
     if (gpio_sat & SUPER_IO_23_IOCTL)
@@ -408,14 +409,14 @@ int gpio_value_setting(unsigned char gpio_sat) {
 
 
 	/* SUPER_IO_GP26 */
-    if (gpio_sat & SUPER_IO_26_IOCTL)
-        byte = byte | (1 << SUPER_GPIO_26_OFF);
-    else
-        byte = byte & ~(1 << SUPER_GPIO_26_OFF);
+	if (gpio_sat & SUPER_IO_26_IOCTL)
+		byte = byte | (1 << SUPER_GPIO_26_OFF);
+	else
+		byte = byte & ~(1 << SUPER_GPIO_26_OFF);
 
-    superIo_CR_WriteByte(LOGIC_DEV_CR(0xE9) , SUPER_LOGIC_GPIO , byte);
+	superio_cr_writebyte(LOGIC_DEV_CR(0xE9), SUPER_LOGIC_GPIO, byte);
 
-    return 0;
+	return 0;
 }
 
 int __init gpio_int_init(void)
@@ -431,8 +432,8 @@ int __init gpio_int_init(void)
     result = alloc_chrdev_region(&dev, CHAR_MIN_BASE, CHAR_MIN_COUNT, DEVICE_NAME);
 	dev_major = MAJOR(dev);
     if (result < 0) {
-        MSG("unable to get major %d",dev_major);
-        MSG("result number %d",result);
+        MSG("unable to get major %d", dev_major);
+        MSG("result number %d", result);
 			goto error;
     }
 
@@ -445,10 +446,8 @@ int __init gpio_int_init(void)
 	devone_class = class_create(THIS_MODULE,DEVICE_NAME);
 	devone_class->pm = &gpio_pm_ops;
 
-	if(IS_ERR(devone_class)){
-
+	if(IS_ERR(devone_class))
 		goto error;
-	}
 
 	devone_dev = MKDEV(dev_major, 0);
 
@@ -480,10 +479,10 @@ error:
 }
 
 
-int gpio_irq_setting(unsigned int uiGpeNum){
+int gpio_irq_setting(unsigned int uiGpeNum)
+{
 
 	acpi_status status;
-
 	status = acpi_install_gpe_handler(NULL,
 					  uiGpeNum,
 					  ACPI_GPE_EDGE_TRIGGERED,
@@ -492,20 +491,19 @@ int gpio_irq_setting(unsigned int uiGpeNum){
 
 
 	pr_debug("%s acpi_install_gpe_handler GPE 0x%02X: 0x%d\n",
-		DEVICE_NAME , uiGpeNum , status);
+		DEVICE_NAME, uiGpeNum, status);
 
 	status = acpi_enable_gpe(NULL ,uiGpeNum);
 
 	return 0;
 }
 
-int gpio_irq_remove_setting(unsigned int uiGpeNum){
+int gpio_irq_remove_setting(unsigned int uiGpeNum)
+{
 
 	acpi_status status;
 
-	status = acpi_remove_gpe_handler(NULL,
-					 uiGpeNum,
-					 &gpio_irq_handler);
+	status = acpi_remove_gpe_handler(NULL, uiGpeNum, &gpio_irq_handler);
 
 	pr_debug("%s acpi_remove_gpe_handler: 0x%d\n", DEVICE_NAME, status);
 
@@ -518,7 +516,7 @@ void __exit gpio_int_exit(void)
 {
 	dev_t dev = MKDEV(dev_major, 0);
 
-	device_destroy(devone_class , devone_dev);
+	device_destroy(devone_class, devone_dev);
 	class_destroy(devone_class);
 
 	unregister_chrdev_region(dev, devone_devs);
@@ -545,5 +543,3 @@ MODULE_DESCRIPTION("www.dfi.com");
 
 module_init(gpio_int_init);
 module_exit(gpio_int_exit);
-
-
