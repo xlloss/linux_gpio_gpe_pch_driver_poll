@@ -1,0 +1,46 @@
+/*
+ *  GPIO_DEVICE.ko is driver for interrupt method to 
+ *	monitor push button key we can use gpio_test to 
+ *  check which key be pushed.
+ *
+ */
+
+
+1.  build kernel module
+	# make clean && make
+ 
+2.  install kernel module
+	# sudo insmod ./GPIO_DEVICE.ko
+
+3.  check driver interface
+	# ls -l /dev/GPIO_DEVICE
+
+4.	build test application
+	# make -C test_ap
+
+5.	run test application
+
+	a. set GPO23 as hight
+		# test_ap/gpiotest 0x1
+
+	b. set GPO26 as hight
+		# test_ap/gpiotest 0x2
+
+	c. set GPO23 and GP026 as hight
+		# test_ap/gpiotest 0x3
+
+	d. push the be watched key:
+	   we will look consoule message :
+
+
+		pid:2971
+		input status: 03
+		
+		wait...
+		receive GPE value: 0x16
+		receive GPE value: 0x16
+		receive GPE value: 0x17
+		receive GPE value: 0x17
+		receive GPE value: 0x16
+		receive GPE value: 0x17
+	
