@@ -5,28 +5,30 @@
  *
  */
 
+*0.  change to root
+	# su
 
 1.  build kernel module
 	# make clean && make
  
 2.  install kernel module
-	# sudo insmod ./GPIO_DEVICE.ko
+	# insmod ./GPIO_DEVICE.ko
 
 3.  check driver interface
 	# ls -l /dev/GPIO_DEVICE
 
-4.	build test application
-	# make -C test_ap
+4.  build test application
+	# make clean -C test_ap && make -C test_ap
 
-5.	run test application
+5.  run test application
 
-	a. set GPO23 as hight
+	a. set NCT6112D : GPO23(EM_INT) as hight
 		# test_ap/gpiotest 0x1
 
-	b. set GPO26 as hight
+	b. set NCT6112D : GPO26(Time_Sync) as hight
 		# test_ap/gpiotest 0x2
 
-	c. set GPO23 and GP026 as hight
+	c. set NCT6112D : GPO23 and GP026 as hight
 		# test_ap/gpiotest 0x3
 
 	d. push the be watched key:
@@ -37,10 +39,9 @@
 		input status: 03
 		
 		wait...
+		receive GPE value: 0x16 <== Press Key 1
 		receive GPE value: 0x16
+		receive GPE value: 0x17 <== Press Key 2
+		receive GPE value: 0x17
 		receive GPE value: 0x16
 		receive GPE value: 0x17
-		receive GPE value: 0x17
-		receive GPE value: 0x16
-		receive GPE value: 0x17
-	
