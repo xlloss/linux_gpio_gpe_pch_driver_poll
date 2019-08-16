@@ -21,9 +21,12 @@
 #include <linux/rcupdate.h>
 #include <linux/uaccess.h>
 #include <linux/sched.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,13,0)
 #include <linux/sched/signal.h>
+#else
+#include <linux/signal.h>
+#endif
 #include <linux/spinlock.h>
-
 #include <linux/time.h>
 
 
